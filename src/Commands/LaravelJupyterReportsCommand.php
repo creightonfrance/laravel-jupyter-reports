@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace Creighton France\LaravelJupyterReports\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class LaravelJupyterReportsCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'laravel-jupyter-reports';
 
     public $description = 'My command';
 
