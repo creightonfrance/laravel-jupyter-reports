@@ -1,6 +1,6 @@
 <?php
 
-namespace Creighton France\LaravelJupyterReports\Commands;
+namespace CreightonFrance\LaravelJupyterReports\Commands;
 
 use Illuminate\Console\Command;
 

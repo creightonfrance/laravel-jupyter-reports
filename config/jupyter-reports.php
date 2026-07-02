@@ -1,6 +1,6 @@
 <?php
 
-// config for Creighton France/LaravelJupyterReports
+// config for CreightonFrance/LaravelJupyterReports
 return [
 
 ];

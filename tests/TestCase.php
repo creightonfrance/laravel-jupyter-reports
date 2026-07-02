@@ -1,10 +1,10 @@
 <?php
 
-namespace Creighton France\LaravelJupyterReports\Tests;
+namespace CreightonFrance\LaravelJupyterReports\Tests;
 
+use CreightonFrance\LaravelJupyterReports\LaravelJupyterReportsServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Creighton France\LaravelJupyterReports\LaravelJupyterReportsServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -13,7 +13,7 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Creighton France\\LaravelJupyterReports\\Database\\Factories\\'.class_basename($modelName).'Factory'
+            fn (string $modelName) => 'CreightonFrance\\LaravelJupyterReports\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
     }
 

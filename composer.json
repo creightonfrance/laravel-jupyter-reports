@@ -34,13 +34,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Creighton France\\LaravelJupyterReports\\": "src/",
-            "Creighton France\\LaravelJupyterReports\\Database\\Factories\\": "database/factories/"
+            "CreightonFrance\\LaravelJupyterReports\\": "src/",
+            "CreightonFrance\\LaravelJupyterReports\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Creighton France\\LaravelJupyterReports\\Tests\\": "tests/",
+            "CreightonFrance\\LaravelJupyterReports\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
     },
@@ -62,10 +62,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Creighton France\\LaravelJupyterReports\\LaravelJupyterReportsServiceProvider"
+                "CreightonFrance\\LaravelJupyterReports\\LaravelJupyterReportsServiceProvider"
             ],
             "aliases": {
-                "LaravelJupyterReports": "Creighton France\\LaravelJupyterReports\\Facades\\LaravelJupyterReports"
+                "LaravelJupyterReports": "CreightonFrance\\LaravelJupyterReports\\Facades\\LaravelJupyterReports"
             }
         }
     },
