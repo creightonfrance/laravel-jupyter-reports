@@ -1,5 +1,5 @@
 <?php
 
-namespace Creighton France\LaravelJupyterReports;
+namespace CreightonFrance\LaravelJupyterReports;
 
 class LaravelJupyterReports {}
