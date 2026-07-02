@@ -2,9 +2,9 @@
 
 namespace CreightonFrance\LaravelJupyterReports;
 
+use CreightonFrance\LaravelJupyterReports\Commands\LaravelJupyterReportsCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use CreightonFrance\LaravelJupyterReports\Commands\LaravelJupyterReportsCommand;
 
 class LaravelJupyterReportsServiceProvider extends PackageServiceProvider
 {

@@ -2,9 +2,9 @@
 
 namespace CreightonFrance\LaravelJupyterReports\Tests;
 
+use CreightonFrance\LaravelJupyterReports\LaravelJupyterReportsServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use CreightonFrance\LaravelJupyterReports\LaravelJupyterReportsServiceProvider;
 
 class TestCase extends Orchestra
 {
