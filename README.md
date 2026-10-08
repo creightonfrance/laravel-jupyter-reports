@@ -1,19 +1,13 @@
-# This is my package laravel-jupyter-reports
+# Laravel Jupyter Reports
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/creightonfrance/laravel-jupyter-reports.svg?style=flat-square)](https://packagist.org/packages/creightonfrance/laravel-jupyter-reports)
-[![GitHub Tests Action Status](https://github.com/spatie/package-laravel-jupyter-reports-laravel/actions/workflows/run-tests.yml/badge.svg)](https://github.com/creightonfrance/laravel-jupyter-reports/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://github.com/spatie/package-laravel-jupyter-reports-laravel/actions/workflows/fix-php-code-style-issues.yml/badge.svg)](https://github.com/creightonfrance/laravel-jupyter-reports/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![GitHub Tests Action Status](https://github.com/creightonfrance/laravel-jupyter-reports/actions/workflows/run-tests.yml/badge.svg)](https://github.com/creightonfrance/laravel-jupyter-reports/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://github.com/creightonfrance/laravel-jupyter-reports/actions/workflows/fix-php-code-style-issues.yml/badge.svg)](https://github.com/creightonfrance/laravel-jupyter-reports/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/creightonfrance/laravel-jupyter-reports.svg?style=flat-square)](https://packagist.org/packages/creightonfrance/laravel-jupyter-reports)
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+Run parameterized Jupyter notebooks as Laravel report jobs and collect their output — CSV/TSV data exports or `nbconvert`-style document conversions (HTML, PDF, script, markdown) — behind a single, swappable execution strategy.
 
-## Support us
-
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/laravel-jupyter-reports.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/laravel-jupyter-reports)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+> **Status:** this package is under active development and not yet ready for production use. Public API and configuration are still subject to change. Design rationale for the notebook execution strategy is documented as an Architecture Decision Record under [`docs/adr`](docs/adr).
 
 ## Installation
 
@@ -36,14 +30,7 @@ You can publish the config file with:
 php artisan vendor:publish --tag="laravel-jupyter-reports-config"
 ```
 
-This is the contents of the published config file:
-
-```php
-return [
-];
-```
-
-Optionally, you can publish the views using
+Optionally, you can publish the views using:
 
 ```bash
 php artisan vendor:publish --tag="laravel-jupyter-reports-views"
@@ -51,10 +38,7 @@ php artisan vendor:publish --tag="laravel-jupyter-reports-views"
 
 ## Usage
 
-```php
-$laravelJupyterReports = new Creighton France\LaravelJupyterReports();
-echo $laravelJupyterReports->echoPhrase('Hello, Creighton France!');
-```
+The notebook execution API is still being built out and isn't ready to document with a working example yet. See [`docs/adr`](docs/adr) for the current design direction and the [CHANGELOG](CHANGELOG.md) for what has actually shipped so far — this section will be filled in once the public API stabilizes.
 
 ## Testing
 
@@ -70,9 +54,13 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
+## Code of Conduct
+
+Please review our [Code of Conduct](CODE_OF_CONDUCT.md) — it applies to all interactions in this project.
+
 ## Security Vulnerabilities
 
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
+Please review [our security policy](SECURITY.md) on how to report security vulnerabilities.
 
 ## Credits
 

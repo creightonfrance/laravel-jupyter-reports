@@ -1,6 +1,6 @@
 <?php
 
-namespace Creighton France\LaravelJupyterReports\Database\Factories;
+namespace CreightonFrance\LaravelJupyterReports\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 
