@@ -1,4 +1,4 @@
-name: PHPStan
+name: lint
 
 on:
   push:
@@ -9,8 +9,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  phpstan:
-    name: phpstan
+  lint:
+    name: lint
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -25,5 +25,5 @@ jobs:
       - name: Install composer dependencies
         uses: ramsey/composer-install@v4
 
-      - name: Run PHPStan
-        run: ./vendor/bin/phpstan --error-format=github
+      - name: Run Pint (check only, does not modify files)
+        run: composer lint
