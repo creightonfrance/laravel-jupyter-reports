@@ -1,0 +1,29 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up()
+    {
+        Schema::create('notebook_reports', function (Blueprint $table) {
+            $table->id();
+            $table->string('status');
+            $table->string('notebook');
+            $table->json('parameters')->nullable();
+            $table->string('output_format');
+            $table->string('output_disk')->nullable();
+            $table->string('output_path')->nullable();
+            $table->text('error')->nullable();
+            $table->unsignedInteger('duration_ms')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('notebook_reports');
+    }
+};
