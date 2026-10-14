@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Proposed
 
 ## Context
 
@@ -11,9 +11,10 @@ Accepted
 - **Trust model:** notebooks are end-user/tenant-authored, not fixed developer templates checked into the app. They are not fully trusted content.
 - **Usage pattern:** report generation is scheduled/batch — dispatched as a Laravel job and processed by a job/listener, not executed synchronously on a web request.
 - **Output formats:** two distinct execution styles need to be supported:
-  - **Data export** (primary case): the notebook itself, parameterized via papermill-style injection (e.g. tenant id, date range, output path), writes a CSV/TSV file to a given path as part of its own code. The executor's job is to run the notebook with the right parameters and then collect that file.
+  - **Data export** (primary case): the notebook itself, parameterized via papermill-style injection (e.g. date range, input path, output path), reads the tenant's data and writes a CSV/TSV file to a given path as part of its own code. The executor's job is to run the notebook with the right parameters and then collect that file.
   - **Document conversion**: `nbconvert`-style export of the executed notebook into other formats (HTML, PDF, script, markdown). This is a genuinely different operation from data export — it converts the notebook document itself rather than collecting a file the notebook wrote — so the execution strategy needs to accommodate both, not just the CSV/TSV case.
 - **Output storage:** the resulting artifact can be persisted either directly in the database or via a Laravel `Storage` disk (local, S3, SFTP, etc.) — and these are not two different mechanisms from the package's point of view. Laravel's `Storage` facade is a thin wrapper around Flysystem adapters; there's no built-in "database" driver, but `Storage::extend()` lets any app register a custom Flysystem adapter that reads/writes blobs to a DB table/column. Once registered, `Storage::disk('database')->put(...)` behaves identically to `Storage::disk('s3')->put(...)`. So the package targets the `Storage` disk abstraction uniformly; "store in DB" is just a disk choice, not a separate code path. DB storage is the simplest option (no extra infra, fine for small CSV/TSV outputs); real Storage disks matter for larger files or when a tenant needs the file to live somewhere addressable (e.g. SFTP).
+- **Data access:** a data-export notebook needs the tenant's rows, but because it is tenant-authored it cannot be trusted to scope its own queries. Anything that hands the notebook DB credentials (or network access to the DB) lets it read every tenant's data, regardless of what tenant id it was parameterized with.
 - **File delivery:** SFTP/upload of the resulting file beyond writing to a disk is intentionally not built into this package — Laravel's own filesystem layer already covers it.
 - **Deployability:** this package is built standalone and generic. It will eventually be installed into a separate Laravel application as a dependency, so nothing in its design should assume a specific consumer app's infrastructure.
 
@@ -49,7 +50,7 @@ Run a long-lived Kernel Gateway service that accepts execution requests over HTT
 
 ### 3. Docker sidecar (ephemeral container per execution)
 
-Run each notebook execution — whether a papermill data-export run or an nbconvert document conversion — in its own short-lived container, isolated from the host's filesystem, environment, and (optionally) network, then discard the container.
+Run each notebook execution — whether a papermill data-export run or an nbconvert document conversion — in its own short-lived container, isolated from the host's filesystem, environment, and network (disabled by default; configurable per deployment), then discard the container.
 
 **Pros:**
 - Real isolation boundary appropriate for untrusted code — a malicious notebook is contained regardless of what it attempts.
@@ -59,10 +60,22 @@ Run each notebook execution — whether a papermill data-export run or an nbconv
 **Cons:**
 - Requires a container runtime reachable from every queue worker, plus a maintained runner image (Python, papermill, nbconvert, and whatever the notebooks depend on) — a real infrastructure dependency this package cannot assume is already present for every installer.
 - Per-job container startup adds overhead compared to a bare subprocess — needs to be actively managed (see Decision) rather than accepted blindly.
+- Kubernetes pods have no Docker daemon. Running `docker run` from a queue-worker pod means mounting the node's container socket (root on the node) or running privileged Docker-in-Docker — both undo the isolation this option exists to provide. On Kubernetes, the equivalent is a Kubernetes Job per execution (see Decision).
 
 ## Decision
 
 Adopt the **Docker sidecar** (option 3) as the **default** executor: each notebook execution — papermill data-export or nbconvert document conversion — runs in its own ephemeral container, isolated from the queue worker's filesystem, environment, and network by default.
+
+**Container backends:** "ephemeral container" is implemented by two backends behind the same executor contract:
+- **Docker** (`docker run --rm`) for hosts/VMs where the queue worker can reach a Docker daemon without elevated privileges.
+- **Kubernetes Job** for Kubernetes deployments (e.g. our production pods): the queue worker creates one Job per execution via the Kubernetes API, using a namespace-scoped service account that can only create/watch/delete Jobs. The Job runs the runner image as non-root with no service-account token, a deny-all egress `NetworkPolicy`, resource limits, and `activeDeadlineSeconds` set from the execution timeout. Mounting the node's Docker socket or privileged DinD is rejected.
+
+**Data path (data export):** the notebook never receives DB credentials, connection env vars, or network access. The trusted host does the tenant scoping:
+1. The consuming app supplies the data for a report (e.g. a query/closure the queue job runs against its own DB, already scoped to the tenant). The job exports those rows to an input file (CSV/Parquet) in a fresh per-execution directory.
+2. That directory's `input/` is mounted **read-only** into the container and `output/` is the only writable mount; the notebook gets `input_path` and `output_path` as papermill parameters. Each execution gets its own directory — the shared scratch root is never mounted, so one run cannot see another tenant's input or output.
+3. After the container exits, the host collects `output/` to the `Storage` disk and deletes the directory.
+
+Any tenant id passed as a parameter is informational only; the isolation boundary is which rows the host exported. On the Kubernetes backend, the host uploads the input to a per-execution object-storage prefix and the Job's init container (package code, not tenant code) fetches it via a short-lived URL scoped to that object into an `emptyDir`, mounted read-only into the notebook container; output returns the same way via a scoped upload URL.
 
 The **Process executor** (option 1) is retained and fully supported as a **non-default, explicitly-selected** alternative — for local development, CI-like environments, or deployments that have already established the notebooks they run are trusted and want to avoid the container runtime dependency. Kernel Gateway (option 2) remains rejected/deferred for the reasons above.
 
@@ -78,7 +91,9 @@ Both executors implement the same `NotebookExecutor` contract (`execute(Notebook
 ## Consequences
 
 - **Isolation is the default, not an opt-in.** Because notebooks are tenant/end-user authored, the default execution path (Docker) contains a malicious or buggy notebook to its own container — no host filesystem, environment variable, or network access beyond what's explicitly granted.
-- **Container runtime is now a real infrastructure dependency for the default path.** Every queue worker host needs a reachable container runtime and the runner image available. This is heavier than the Process-only design previously considered, and is accepted because isolation is required given the trust model.
+- **Container runtime is now a real infrastructure dependency for the default path.** Every queue worker host needs a reachable container runtime (a Docker daemon, or Kubernetes API access for the Job backend) and the runner image available. This is heavier than the Process-only design previously considered, and is accepted because isolation is required given the trust model.
+- **Notebooks get data, never credentials.** The host is responsible for exporting a tenant-scoped input file per execution; the package needs an input-provider hook for the consuming app. Notebooks that query a DB or API directly are not supported on the isolated path.
+- **Kubernetes Job backend adds latency and moving parts.** Pod scheduling plus init-container fetch is slower than a local `docker run`, and it needs RBAC, a NetworkPolicy, and object storage for input/output handoff. Acceptable for batch reports.
 - **Process remains available, deliberately not the default.** Consumers can opt into it via config when they've made a conscious call that isolation isn't needed (e.g. trusted internal notebooks, local dev) — the risk of running unsandboxed code is then a decision the consuming app makes explicitly, not an inherited default.
 - **Both data-export and document-conversion flows are first-class.** The executor and its request/result shapes need to support papermill-style parameterized CSV/TSV output and nbconvert-style format conversion, not just one of the two.
 - **Storage is disk-agnostic.** Whether output ends up as a DB blob or a file on S3/SFTP/local disk is a `Storage` disk configuration choice; the package's read/write path is identical either way.
